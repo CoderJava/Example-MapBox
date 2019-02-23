@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
                         val cameraPosition = CameraPosition.Builder()
                             .target(LatLng(lastLocation!!.latitude, lastLocation.longitude))
                             .build()
-                        mapBoxMap.cameraPosition = cameraPosition
+                        mapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000 * 5)
                     }
 
                     override fun onFailure(exception: Exception) {
