@@ -4,10 +4,18 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
+import android.widget.Toast
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineProvider
+import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
+import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
@@ -15,6 +23,7 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
 
@@ -28,6 +37,38 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
         Mapbox.getInstance(this, getString(R.string.access_token))
         setContentView(R.layout.activity_main)
         initMapBox(savedInstanceState)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_main_activity, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.menu_item_get_current_location_menu_main_activity -> {
+                val locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+                locationEngine.getLastLocation(object : LocationEngineCallback<LocationEngineResult> {
+                    override fun onSuccess(result: LocationEngineResult?) {
+                        val lastLocation = result?.lastLocation
+                        val cameraPosition = CameraPosition.Builder()
+                            .target(LatLng(lastLocation!!.latitude, lastLocation.longitude))
+                            .build()
+                        mapBoxMap.cameraPosition = cameraPosition
+                    }
+
+                    override fun onFailure(exception: Exception) {
+                        Toast.makeText(this@MainActivity, "Error occured: ${exception.message}", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                })
+            }
+            R.id.menu_item_style_menu_main_activity -> {
+                // TODO: do something in here
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun initMapBox(savedInstanceState: Bundle?) {
