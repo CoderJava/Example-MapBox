@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Example MapBox</string>
     <string name="access_token">pk.eyJ1Ijoia29sb25lbCIsImEiOiJjanNjMWc2enEwMGs5M3lwbmF2NXEwazV4In0.70IXd_Hc-X_o1jQt19J3lA</string>
+    <string name="info">Info</string>
+    <string name="permissions_denied">Permissions denied</string>
+    <string name="dismiss">Dismiss</string>
 </resources>
