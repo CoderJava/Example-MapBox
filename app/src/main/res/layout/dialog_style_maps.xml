@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+>
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_street"
+            android:padding="16dp"
+            android:text="Street"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_outdoor"
+            android:padding="16dp"
+            android:text="Outdoor"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_light"
+            android:padding="16dp"
+            android:text="Light"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_dark"
+            android:padding="16dp"
+            android:text="Dark"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_satellite"
+            android:padding="16dp"
+            android:text="Satellite"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_satellite_street"
+            android:padding="16dp"
+            android:text="Satellite Street"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_traffic_day"
+            android:padding="16dp"
+            android:text="Traffic Day"
+    />
+
+    <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/text_view_traffic_night"
+            android:padding="16dp"
+            android:text="Traffic Night"
+    />
+
+</LinearLayout>

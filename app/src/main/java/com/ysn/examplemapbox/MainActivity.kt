@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import com.mapbox.android.core.location.LocationEngineCallback
 import com.mapbox.android.core.location.LocationEngineProvider
@@ -23,14 +25,15 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
-import java.lang.Exception
+import kotlinx.android.synthetic.main.dialog_style_maps.view.*
 
-class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
+class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnClickListener {
 
     lateinit var mapView: MapView
     lateinit var mapBoxMap: MapboxMap
     lateinit var markerViewManager: MarkerViewManager
     lateinit var permissionsManager: PermissionsManager
+    lateinit var alertDialogStyleMaps: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +68,20 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
                 })
             }
             R.id.menu_item_style_menu_main_activity -> {
-                // TODO: do something in here
+                val viewDialogStyleMaps = LayoutInflater.from(this@MainActivity)
+                    .inflate(R.layout.dialog_style_maps, null)
+                viewDialogStyleMaps.text_view_street.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_outdoor.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_light.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_dark.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_satellite.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_satellite_street.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_traffic_day.setOnClickListener(this)
+                viewDialogStyleMaps.text_view_traffic_night.setOnClickListener(this)
+                alertDialogStyleMaps = AlertDialog.Builder(this@MainActivity)
+                    .setView(viewDialogStyleMaps)
+                    .create()
+                alertDialogStyleMaps.show()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -125,6 +141,43 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener {
         locationComponent.isLocationComponentEnabled = true
         locationComponent.cameraMode = CameraMode.TRACKING
         locationComponent.renderMode = RenderMode.COMPASS
+    }
+
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.text_view_street -> {
+                mapBoxMap.setStyle(Style.MAPBOX_STREETS)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_outdoor -> {
+                mapBoxMap.setStyle(Style.OUTDOORS)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_light -> {
+                mapBoxMap.setStyle(Style.LIGHT)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_dark -> {
+                mapBoxMap.setStyle(Style.DARK)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_satellite -> {
+                mapBoxMap.setStyle(Style.SATELLITE)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_satellite_street -> {
+                mapBoxMap.setStyle(Style.SATELLITE_STREETS)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_traffic_day -> {
+                mapBoxMap.setStyle(Style.TRAFFIC_DAY)
+                alertDialogStyleMaps.dismiss()
+            }
+            R.id.text_view_traffic_night -> {
+                mapBoxMap.setStyle(Style.TRAFFIC_NIGHT)
+                alertDialogStyleMaps.dismiss()
+            }
+        }
     }
 
     override fun onStart() {
