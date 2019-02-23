@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -15,6 +16,7 @@ import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
@@ -29,11 +31,12 @@ import kotlinx.android.synthetic.main.dialog_style_maps.view.*
 
 class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnClickListener {
 
-    lateinit var mapView: MapView
-    lateinit var mapBoxMap: MapboxMap
-    lateinit var markerViewManager: MarkerViewManager
-    lateinit var permissionsManager: PermissionsManager
-    lateinit var alertDialogStyleMaps: AlertDialog
+    private lateinit var mapView: MapView
+    private lateinit var mapBoxMap: MapboxMap
+    private lateinit var markerViewManager: MarkerViewManager
+    private lateinit var permissionsManager: PermissionsManager
+    private lateinit var alertDialogStyleMaps: AlertDialog
+    private val markers = ArrayList<Marker>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,7 +50,7 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
         return super.onCreateOptionsMenu(menu)
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission", "InflateParams")
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.menu_item_get_current_location_menu_main_activity -> {
@@ -129,6 +132,16 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
             this.mapBoxMap = mapBoxMap
             this.mapBoxMap.setStyle(Style.MAPBOX_STREETS) {
                 mapBoxMap.addOnMapClickListener(this)
+                mapBoxMap.setOnMarkerClickListener {
+                    for (itemMarker in markers) {
+                        if (itemMarker.position == it.position) {
+                            markers.remove(itemMarker)
+                            this.mapBoxMap.removeMarker(itemMarker)
+                            break
+                        }
+                    }
+                    true
+                }
                 showingDeviceLocation()
             }
         }
@@ -217,9 +230,12 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
     }
 
     override fun onMapClick(point: LatLng): Boolean {
-        mapBoxMap.addMarker(
-            MarkerOptions()
-                .position(point)
+        markers.add(
+            mapBoxMap.addMarker(
+                MarkerOptions()
+                    .position(point)
+                    .title("${point.latitude},${point.longitude}")
+            )
         )
         return true
     }
