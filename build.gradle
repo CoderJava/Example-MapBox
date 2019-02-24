@@ -6,6 +6,9 @@ buildscript {
         google()
         jcenter()
         mavenCentral()
+        maven {
+            url 'https://mapbox.bintray.com/mapbox'
+        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.3.1'
@@ -20,6 +23,9 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
+        maven {
+            url 'https://mapbox.bintray.com/mapbox'
+        }
     }
 }
 

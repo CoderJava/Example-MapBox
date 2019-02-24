@@ -15,6 +15,10 @@ import com.mapbox.android.core.location.LocationEngineProvider
 import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.api.directions.v5.DirectionsCriteria
+import com.mapbox.api.directions.v5.models.DirectionsResponse
+import com.mapbox.api.directions.v5.models.DirectionsRoute
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.annotations.Marker
 import com.mapbox.mapboxsdk.annotations.MarkerOptions
@@ -27,7 +31,15 @@ import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.dialog_style_maps.view.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnClickListener {
 
@@ -37,12 +49,19 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
     private lateinit var permissionsManager: PermissionsManager
     private lateinit var alertDialogStyleMaps: AlertDialog
     private val markers = ArrayList<Marker>()
+    lateinit var currentRoute: DirectionsRoute
+    private var navigationMapRoute: NavigationMapRoute? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(this, getString(R.string.access_token))
         setContentView(R.layout.activity_main)
         initMapBox(savedInstanceState)
+        initButtonStartNavigationListener()
+    }
+
+    private fun initButtonStartNavigationListener() {
+        button_start_navigation.setOnClickListener(this)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -91,7 +110,7 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
     }
 
     private fun initMapBox(savedInstanceState: Bundle?) {
-        mapView = findViewById(R.id.mapView)
+        mapView = findViewById(R.id.map_view)
         mapView.onCreate(savedInstanceState)
         val permissionListener: PermissionsListener = object : PermissionsListener {
             override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
@@ -137,6 +156,7 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
                         if (itemMarker.position == it.position) {
                             markers.remove(itemMarker)
                             this.mapBoxMap.removeMarker(itemMarker)
+                            button_start_navigation.visibility = View.GONE
                             break
                         }
                     }
@@ -190,6 +210,13 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
                 mapBoxMap.setStyle(Style.TRAFFIC_NIGHT)
                 alertDialogStyleMaps.dismiss()
             }
+            R.id.button_start_navigation -> {
+                val navigationLauncherOptions = NavigationLauncherOptions.builder()
+                    .directionsRoute(currentRoute)
+                    .shouldSimulateRoute(true)
+                    .build()
+                NavigationLauncher.startNavigation(this@MainActivity, navigationLauncherOptions)
+            }
         }
     }
 
@@ -230,13 +257,51 @@ class MainActivity : AppCompatActivity(), MapboxMap.OnMapClickListener, View.OnC
     }
 
     override fun onMapClick(point: LatLng): Boolean {
+        if (markers.size == 2) {
+            mapBoxMap.removeMarker(markers[1])
+            markers.removeAt(1)
+        }
         markers.add(
             mapBoxMap.addMarker(
                 MarkerOptions()
                     .position(point)
-                    .title("${point.latitude},${point.longitude}")
             )
         )
+        if (markers.size == 2) {
+            val originPoint = Point.fromLngLat(markers[0].position.longitude, markers[0].position.latitude)
+            val destinationPoint = Point.fromLngLat(markers[1].position.longitude, markers[1].position.latitude)
+            NavigationRoute.builder(this)
+                .accessToken(Mapbox.getAccessToken()!!)
+                .origin(originPoint)
+                .destination(destinationPoint)
+                .voiceUnits(DirectionsCriteria.IMPERIAL)
+                .build()
+                .getRoute(object : Callback<DirectionsResponse> {
+                    override fun onFailure(call: Call<DirectionsResponse>, t: Throwable) {
+                        Log.d(javaClass.simpleName, "Error occured: ${t.message}")
+                        button_start_navigation.visibility = View.GONE
+                    }
+
+                    override fun onResponse(call: Call<DirectionsResponse>, response: Response<DirectionsResponse>) {
+                        if (response.body() == null) {
+                            Log.d(javaClass.simpleName, "No routes found, make sure you set the right user and access token.")
+                            return
+                        } else if (response.body()!!.routes().size < 1) {
+                            Log.d(javaClass.simpleName, "No routes found")
+                            return
+                        }
+                        currentRoute = response.body()!!.routes()[0]
+
+                        if (navigationMapRoute != null) {
+                            navigationMapRoute?.removeRoute()
+                        } else {
+                            navigationMapRoute = NavigationMapRoute(null, mapView, mapBoxMap, R.style.NavigationMapRoute)
+                        }
+                        navigationMapRoute?.addRoute(currentRoute)
+                        button_start_navigation.visibility = View.VISIBLE
+                    }
+                })
+        }
         return true
     }
 
